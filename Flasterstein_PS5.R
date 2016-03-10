@@ -91,7 +91,7 @@ MEAPE_f <- function(pred, obs){
 # Function for checking fit statistics
 #
 # This function takes in observed and predicted data and
-# the chosen fit statistics
+# returns the chosen fit statistics
 # @param y vector of observed values
 # @param P vector of corresponding predictions by models as columns
 # @param do_(Testname) if true, function will do the fit statistic
