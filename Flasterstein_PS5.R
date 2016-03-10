@@ -44,6 +44,7 @@ subset <- sample(5914, size=5914/2,replace=FALSE)
 # split training and testing groups
 train <- data[subset,]
 test <- data[-subset,]
+test_obama <- test$obama_feelings
 
 ## Linear Models
 # linear model of opinions on welfare
@@ -68,6 +69,78 @@ cons_test <- as.numeric(predict(cons_trifecta_lm, test))
 ## Organize prediction into a matrix
 test_matrix <- cbind(welfare_test,religion_test,cons_test)
 
-## Question 3
+
+
+check_fit <- function(y, P, do_RMSE=T, do_MAD=T, do_RMSLE=T,
+                      do_MAPE=T, do_MEAPE=T){
+  return_matrix <- matrix(nrow=ncol(P))
+  if(!is.matrix(P)){
+    return("P needs to be a matrix of values")
+  }
+  if(!is.vector(y)){
+    return("y needs to be a vector of values")
+  }
+  if(do_RMSE){
+   RMSE <- apply(P, 2, function(p, o) RMSE_f(pred=p,obs=o), o=y)
+   return_matrix <- cbind(return_matrix, RMSE)
+  }
+  if(do_MAD){
+    MAD <- apply(P, 2, function(p, o) MAD_f(pred=p,obs=o), o=y)
+    return_matrix <- cbind(return_matrix, MAD)
+  }
+  if(do_RMSLE){
+    RMSLE <- apply(P, 2, function(p, o) RMSLE_f(pred=p,obs=o), o=y)
+    return_matrix <- cbind(return_matrix, RMSLE)
+  }
+  if(do_MAPE){
+    MAPE <- apply(P, 2, function(p, o) MAPE_f(pred=p,obs=o), o=y)
+    return_matrix <- cbind(return_matrix, MAPE)
+  }
+  if(do_MEAPE){
+    MEAPE <- apply(P, 2, function(p, o) MEAPE_f(pred=p,obs=o), o=y)
+    return_matrix <- cbind(return_matrix, MEAPE)
+  }
+  return(return_matrix)
+}
+
+
+## Individual fit statistic functions
+# These are helper functions for the main function
+# each takes in the vectors of observed and predicted outcomes
+# and outputs the corresponding statistic
+RMSE_f <- function(pred, obs){
+  abs_error <- abs(pred - obs)
+  rmse <- sqrt(mean(abs_error^2))
+  return(rmse)
+}
+MAD_f <- function(pred, obs){
+  abs_error <- abs(pred - obs)
+  mad <- median(abs_error)
+  return(mad)
+}
+RMSLE_f <- function(pred, obs){
+  ln_pred <- log(abs(pred + 1))
+  ln_obs <- log(abs(obs + 1))
+  rmsle <- sqrt(mean(ln_pred - ln_obs))
+  return(rmsle)
+}
+MAPE_f <- function(pred, obs){
+  abs_error <- abs(pred - obs)
+  abs_per_error <- (abs_error/abs(pred))* 100
+  mape <- mean(abs_per_error)
+  return(mape)
+}
+MEAPE_f <- function(pred, obs){
+  abs_error <- abs(pred - obs)
+  abs_per_error <- (abs_error/abs(pred))* 100
+  meape <- median(abs_per_error)
+  return(meape)
+}
+
+check_fit(y=test_obama,P=test_matrix) 
+  
+  
+  
+  
 
 
