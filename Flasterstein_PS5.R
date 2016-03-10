@@ -11,26 +11,11 @@ library(foreign)
 ## read in data
 anes <- read.dta("~/Documents/PS5/anes_timeseries_2012_stata12.dta")
 
-## model Obama's feeling thermometer score as function
-## of Clinton's feeling thermometer score
-model1 <- lm(ft_dpc ~ ft_hclinton, anes)
-
-## make a prediction for a single observation with
-## hypothetical clinton score of 77
-predict(model1, data.frame(ft_hclinton=77))
-## we would expect a Obama score of 71.7
-
-
 ## Question 1
-## randomly subset the data into two partitions
-## use "training set" to build at least three models 
-## of Obama's feeling thermometer score
-## document carefully how you deal with missingness
 
-## Creating and subsetting the data frame with variables of interest
-# ftgr_welfare: rate people on welfare 
-# ftgr_tea: how do people feel about the tea party
-# ftgr_muslims: how do people feel about muslims
+## Create and subset the data frame with variables of interest
+# all ftgr statistics ask respondents to rate groups on a scale from
+# 1 to 100
 data <- data.frame(anes$caseid, anes$ft_dpc, anes$ftgr_welfare,
                    anes$ftgr_tea, anes$ftgr_liberals,anes$ftgr_congress,
                    anes$ftgr_muslims,anes$ftgr_catholics, anes$ftgr_mormons,
@@ -46,8 +31,8 @@ train <- data[subset,]
 test <- data[-subset,]
 test_obama <- test$obama_feelings
 
-## Linear Models
-# linear model of opinions on welfare
+## Models
+# linear model of opinions on welfare recipients
 welfare_lm <- lm(obama_feelings ~ welfare, train)
 # linear model of opinions on multiple religious minorities
 religion_lm <- lm(obama_feelings ~ muslims + catholics + mormons + athiests, train)
@@ -57,52 +42,17 @@ cons_trifecta_lm <- lm(obama_feelings ~ tea + liberals + congress, train)
 
 ## Question 2
 
-## Welfare model predictions
-welfare_test <- as.numeric(predict(welfare_lm, test))
+# Welfare model predictions
+welfare_prediction <- as.numeric(predict(welfare_lm, test))
+# Religion model predictions
+religion_prediction <- as.numeric(predict(religion_lm, test))
+# Conservative model predictions
+cons_prediction <- as.numeric(predict(cons_trifecta_lm, test))
 
-## Religion model predictions
-religion_test <- as.numeric(predict(religion_lm, test))
+## Organize predictions into a matrix
+prediction_matrix <- cbind(welfare_test,religion_test,cons_test)
 
-## Conservative model predictions
-cons_test <- as.numeric(predict(cons_trifecta_lm, test))
-
-## Organize prediction into a matrix
-test_matrix <- cbind(welfare_test,religion_test,cons_test)
-
-
-
-check_fit <- function(y, P, do_RMSE=T, do_MAD=T, do_RMSLE=T,
-                      do_MAPE=T, do_MEAPE=T){
-  return_matrix <- matrix(nrow=ncol(P))
-  if(!is.matrix(P)){
-    return("P needs to be a matrix of values")
-  }
-  if(!is.vector(y)){
-    return("y needs to be a vector of values")
-  }
-  if(do_RMSE){
-   RMSE <- apply(P, 2, function(p, o) RMSE_f(pred=p,obs=o), o=y)
-   return_matrix <- cbind(return_matrix, RMSE)
-  }
-  if(do_MAD){
-    MAD <- apply(P, 2, function(p, o) MAD_f(pred=p,obs=o), o=y)
-    return_matrix <- cbind(return_matrix, MAD)
-  }
-  if(do_RMSLE){
-    RMSLE <- apply(P, 2, function(p, o) RMSLE_f(pred=p,obs=o), o=y)
-    return_matrix <- cbind(return_matrix, RMSLE)
-  }
-  if(do_MAPE){
-    MAPE <- apply(P, 2, function(p, o) MAPE_f(pred=p,obs=o), o=y)
-    return_matrix <- cbind(return_matrix, MAPE)
-  }
-  if(do_MEAPE){
-    MEAPE <- apply(P, 2, function(p, o) MEAPE_f(pred=p,obs=o), o=y)
-    return_matrix <- cbind(return_matrix, MEAPE)
-  }
-  return(return_matrix)
-}
-
+##Questions 4 and 5
 
 ## Individual fit statistic functions
 # These are helper functions for the main function
@@ -137,7 +87,57 @@ MEAPE_f <- function(pred, obs){
   return(meape)
 }
 
-check_fit(y=test_obama,P=test_matrix) 
+
+# Function for checking fit statistics
+#
+# This function takes in observed and predicted data and
+# the chosen fit statistics
+# @param y vector of observed values
+# @param P vector of corresponding predictions by models as columns
+# @param do_(Testname) if true, function will do the fit statistic
+#
+# @return a matrix with the test values for each model, with 
+#         the models as rows
+#
+# @author David P. Flasterstein
+check_fit <- function(y, P, do_RMSE=T, do_MAD=T, do_RMSLE=T,
+                      do_MAPE=T, do_MEAPE=T){
+  return_matrix <- matrix(nrow=ncol(P))
+  if(!is.matrix(P)){
+    return("P needs to be a matrix of values")
+  }
+  if(!is.vector(y)){
+    return("y needs to be a vector of values")
+  }
+  if(do_RMSE){
+   RMSE <- apply(P, 2, function(p, o) RMSE_f(pred=p,obs=o), o=y)
+   return_matrix <- cbind(return_matrix, RMSE)
+  }
+  if(do_MAD){
+    MAD <- apply(P, 2, function(p, o) MAD_f(pred=p,obs=o), o=y)
+    return_matrix <- cbind(return_matrix, MAD)
+  }
+  if(do_RMSLE){
+    RMSLE <- apply(P, 2, function(p, o) RMSLE_f(pred=p,obs=o), o=y)
+    return_matrix <- cbind(return_matrix, RMSLE)
+  }
+  if(do_MAPE){
+    MAPE <- apply(P, 2, function(p, o) MAPE_f(pred=p,obs=o), o=y)
+    return_matrix <- cbind(return_matrix, MAPE)
+  }
+  if(do_MEAPE){
+    MEAPE <- apply(P, 2, function(p, o) MEAPE_f(pred=p,obs=o), o=y)
+    return_matrix <- cbind(return_matrix, MEAPE)
+  }
+  return(return_matrix)
+}
+
+
+
+
+## Question 5
+# check how my models did with each statistic
+check_fit(y=test_obama, P=test_matrix) 
   
   
   
