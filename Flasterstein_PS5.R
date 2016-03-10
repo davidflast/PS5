@@ -23,7 +23,11 @@ data <- data.frame(anes$caseid, anes$ft_dpc, anes$ftgr_welfare,
 colnames(data) <-c("caseid","obama_feelings","welfare",
                    "tea","liberals", "congress","muslims", "catholics",
                    "mormons", "athiests")
-
+# replaces all -6 and -7 (which mean no response) with NA
+# in the functions to calculate fit, the NAs are removed
+for(i in 1:10) {
+  data[i]<-replace(data[i],data[i]==-6 | data[i]==-7, NA)
+}
 # randomly choose which rows to be in training sample
 subset <- sample(5914, size=5914/2,replace=FALSE)
 # split training and testing groups
@@ -50,7 +54,8 @@ religion_prediction <- as.numeric(predict(religion_lm, test))
 cons_prediction <- as.numeric(predict(cons_trifecta_lm, test))
 
 ## Organize predictions into a matrix
-prediction_matrix <- cbind(welfare_test,religion_test,cons_test)
+prediction_matrix <- cbind(welfare_prediction,religion_prediction,
+                           cons_prediction)
 
 ##Questions 4 and 5
 
@@ -60,30 +65,30 @@ prediction_matrix <- cbind(welfare_test,religion_test,cons_test)
 # and outputs the corresponding statistic
 RMSE_f <- function(pred, obs){
   abs_error <- abs(pred - obs)
-  rmse <- sqrt(mean(abs_error^2))
+  rmse <- sqrt(mean(abs_error^2, na.rm=T))
   return(rmse)
 }
 MAD_f <- function(pred, obs){
   abs_error <- abs(pred - obs)
-  mad <- median(abs_error)
+  mad <- median(abs_error, na.rm=T)
   return(mad)
 }
 RMSLE_f <- function(pred, obs){
   ln_pred <- log(abs(pred + 1))
   ln_obs <- log(abs(obs + 1))
-  rmsle <- sqrt(mean(ln_pred - ln_obs))
+  rmsle <- sqrt(mean(ln_pred - ln_obs, na.rm=T))
   return(rmsle)
 }
 MAPE_f <- function(pred, obs){
   abs_error <- abs(pred - obs)
   abs_per_error <- (abs_error/abs(pred))* 100
-  mape <- mean(abs_per_error)
+  mape <- mean(abs_per_error, na.rm=T)
   return(mape)
 }
 MEAPE_f <- function(pred, obs){
   abs_error <- abs(pred - obs)
   abs_per_error <- (abs_error/abs(pred))* 100
-  meape <- median(abs_per_error)
+  meape <- median(abs_per_error, na.rm=T)
   return(meape)
 }
 
@@ -137,7 +142,7 @@ check_fit <- function(y, P, do_RMSE=T, do_MAD=T, do_RMSLE=T,
 
 ## Question 5
 # check how my models did with each statistic
-check_fit(y=test_obama, P=test_matrix) 
+check_fit(y=test_obama, P=prediction_matrix) 
   
   
   
