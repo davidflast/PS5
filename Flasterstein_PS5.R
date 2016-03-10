@@ -57,21 +57,17 @@ cons_trifecta_lm <- lm(obama_feelings ~ tea + liberals + congress, train)
 ## Question 2
 
 ## Welfare model predictions
-# how much someone would like obama while disliking welfare
-predict(welfare_lm, data.frame(welfare = 20))
-# how much like obama while liking welfare
-predict(welfare_lm, data.frame(welfare = 80))
+welfare_test <- as.numeric(predict(welfare_lm, test))
 
 ## Religion model predictions
-# someone who loves catholics, is ok with mormons and athiests, and dislikes muslims
-predict(religion_lm, data.frame(catholics = 100, muslims = 20, 
-                                mormons = 50, athiests = 50))
-# somone who loves athiests, but hates catholics, muslims and mormons
-predict(religion_lm, data.frame(catholics = 10, muslims = 10, 
-                                mormons = 10, athiests = 100))
+religion_test <- as.numeric(predict(religion_lm, test))
 
 ## Conservative model predictions
-# perfect conservative prediction
-predict(cons_trifecta_lm, data.frame(tea=100, liberals=0,congress=0))
-# average person prediction (kind of disliking everyone)
-predict(cons_trifecta_lm, data.frame(tea=30, liberals=30,congress=30))
+cons_test <- as.numeric(predict(cons_trifecta_lm, test))
+
+## Organize prediction into a matrix
+test_matrix <- cbind(welfare_test,religion_test,cons_test)
+
+## Question 3
+
+
