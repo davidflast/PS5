@@ -57,7 +57,7 @@ cons_prediction <- as.numeric(predict(cons_trifecta_lm, test))
 prediction_matrix <- cbind(welfare_prediction,religion_prediction,
                            cons_prediction)
 
-##Questions 4 and 5
+##Questions 3 and 4
 
 ## Individual fit statistic functions
 # These are helper functions for the main function
@@ -108,9 +108,11 @@ MEAPE_f <- function(pred, obs){
 check_fit <- function(y, P, do_RMSE=T, do_MAD=T, do_RMSLE=T,
                       do_MAPE=T, do_MEAPE=T){
   return_matrix <- matrix(nrow=ncol(P))
+  # check to see if P is a matrix and return an error message
   if(!is.matrix(P)){
     return("P needs to be a matrix of values")
   }
+  # check to see if y is a vector and return an error message
   if(!is.vector(y)){
     return("y needs to be a vector of values")
   }
@@ -134,6 +136,8 @@ check_fit <- function(y, P, do_RMSE=T, do_MAD=T, do_RMSLE=T,
     MEAPE <- apply(P, 2, function(p, o) MEAPE_f(pred=p,obs=o), o=y)
     return_matrix <- cbind(return_matrix, MEAPE)
   }
+  # removes column of NAs
+  return_matrix <- return_matrix[,-1]
   return(return_matrix)
 }
 
